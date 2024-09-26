@@ -50,7 +50,7 @@ app.add_middleware(
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token") 
 
-class User(BaseModel): 
+class User(BaseModel):
     username: str
     disabled: Union[bool, None] = None
 
@@ -139,8 +139,11 @@ async def front_upload(request: Request, current_user: User = Depends(get_curren
     color = body['color']               # get the "color" attribute
     
     current_time = strftime("%Y-%b-%d %H:%M:%S", localtime())
+    print(type(current_user))
+    current_username = current_user.username
 
     collection_front.insert_one({
+        "user": current_username,
         "update_time": current_time,
         "color": color
     })
@@ -160,6 +163,7 @@ async def front_upload(request: Request, current_user: User = Depends(get_curren
         collection_pico.update_one({"ID": 4}, {"$set": {"color": color[int(SIZE*9): int(SIZE*9+6)]}})
     else:
         collection_pico.insert_one({
+            "user": current_username,
             "ID": 4,
             "color": color[int(SIZE*9): int(SIZE*9+6)]
         })

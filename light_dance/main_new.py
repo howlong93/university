@@ -55,7 +55,13 @@ class User(BaseModel):
     enabled: Union[bool, None] = None
     
     fav_color: [0]*16
-    player_1
+    player_index: [
+        [
+            {
+                time: 0
+            }
+        ]
+    ]
 
 
 class UserInDB(User): 
@@ -145,6 +151,7 @@ async def front_upload(request: Request, current_user: User = Depends(get_curren
     current_time = strftime("%Y-%b-%d %H:%M:%S", localtime())
 
     collection_front.insert_one({
+        "user": current_user
         "update_time": current_time,
         "color": color
     })
