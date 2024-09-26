@@ -1,16 +1,21 @@
 from typing import Union
 from pymongo import MongoClient
-from fastapi import Request, FastAPI, HTTPException, Depends, Path, status
+from fastapi import Request, FastAPI, HTTPException, Depends, Path, status, Form
+from fastapi import File, UploadFile
 from pydantic import BaseModel
 from typing import Optional, Dict, List
+# from app import app
+# from flask import Flask, send_file, render_template
 import json
 import os
+import shutil
 from dotenv import load_dotenv
 
 from time import strftime, localtime
-from fastapi.middleware.cors import CORSMiddleware
 
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm #
+from fastapi.responses import FileResponse
 
 app = FastAPI()
 
@@ -30,6 +35,7 @@ SIZE = 256 # number of LED per board
 db = client['test']
 collection_front = db['front']
 collection_pico = db['pico']
+collection_music = db['music']
 user_list = db['users']
 
 origins = [
@@ -125,6 +131,61 @@ async def front_read_time():
         "time_list" : time_list[::-1]
     }
 
+
+@app.post("/upload_music")
+async def upload_music(file: UploadFile = File(None), current_user: User = Depends(get_current_active_user)):
+	print(f"Received file: {file.filename}")  # Add this line to debug
+
+	if file is None:
+		raise HTTPException(status_code=400, detail="No file provided")
+	if file.content_type != "audio/mpeg":
+		raise HTTPException(status_code=415, detail="File must be an MP3")
+
+	file_location = f"home/user/music_file/{current_user.username}"
+	if not os.path.exists(file_location):
+		print("make directory")
+		os.mkdir(file_location)
+				    
+	print("saving files")
+	file_loc = file_location + '/' + file.filename
+	# Save the uploaded file to the local server
+	with open(file_loc, "wb") as buffer:
+		shutil.copyfileobj(file.file, buffer)
+	    
+	return {"info": f"file '{file.filename}' saved at '{file_location}'"}
+
+
+@app.get("/get_music_list")
+async def get_music(current_user: User = Depends(get_current_active_user)):
+	file_path = f"/home/user/music_file/{current_user.username}"
+	files = os.listdir(file_path)
+	# Filtering only the files.
+	files = [f for f in files if os.path.isfile(file_path+'/'+f)]
+	print(*files, sep="\n")
+
+	return {
+		"music_list": files,
+		"message": f"get music list from {file_path}"
+	}
+
+
+@app.get("/get_music/{filename}")
+async def get_music(filename: str, current_user: User = Depends(get_current_active_user)):
+	file_location = f'/home/user/music_file/{current_user.username}/{filename}'
+	if not os.path.exists(file_location):
+		raise HTTPException(status_code=415, detail= f"file not found: {file_location}")
+	
+	
+	# Check if the file exiists before serving it
+	if not os.path.exists(file_location):
+		raise HTTPException(status_code=404, detail="File not found")
+
+	# Return the file as a response
+	return FileResponse(file_location, media_type='audio/mpeg', filename=filename)
+
+	
+
+# saving light color data
 @app.post("/items/")   # to be determined
 async def front_upload(request: Request, current_user: User = Depends(get_current_active_user)):
     b = await request.body()            # 等 body 傳進來再繼續
@@ -136,10 +197,11 @@ async def front_upload(request: Request, current_user: User = Depends(get_curren
         print("Failed to decode JSON body.")
         raise HTTPException(status_code=400, detail="Invalid JSON body")
 
+#    body = await request.form()
+
     color = body['color']               # get the "color" attribute
     
     current_time = strftime("%Y-%b-%d %H:%M:%S", localtime())
-    print(type(current_user))
     current_username = current_user.username
 
     collection_front.insert_one({
