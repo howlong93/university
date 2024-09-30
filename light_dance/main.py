@@ -152,7 +152,7 @@ async def upload_music(file: UploadFile = File(None), current_user: User = Depen
 	with open(file_loc, "wb") as buffer:
 		shutil.copyfileobj(file.file, buffer)
 	    
-	return {"info": f"file '{file.filename}' saved at '{file_location}'"}
+	return {"message": f"file '{file.filename}' saved at '{file_location}'"}
 
 
 @app.get("/get_music_list")
