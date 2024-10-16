@@ -1,0 +1,12 @@
+{
+    "players": [
+        [
+            {"time": 1, "head": 111, "hand": 111, "leg": 111, "shoes": 111},
+            {"time": 2, "head": 222, "hand": 222, "leg": 222, "shoes": 222}
+        ],
+        [
+            {"time": 1, "head": 333, "hand": 333, "leg": 333, "shoes": 333},
+            {"time": 2, "head": 444, "hand": 444, "leg": 444, "shoes": 444}
+        ]
+    ]
+}
