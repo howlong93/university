@@ -61,6 +61,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 class PlayerData(BaseModel):
 	time: int
 	head: int
+	leg: int
+	shoes: int
 
 class Player(BaseModel):
 	data: List[PlayerData]
@@ -157,18 +159,21 @@ async def front_read_time(username: str):
 
 	return {"list": final_response}
 
+@app.get("/items/{username}/{query_time}")
+async def get_user_color (username: str, query_time: str):
+  user_data = collection_color.find_one({"user": username, "update_time": query_time})
+
+  if user_data:
+      user_json = jsonable_encoder(user_data, custom_encoder={ObjectId: str})
+      return user_json
+  else:
+      return {"message": f"user not found: '{username}'"}
+
 @app.get("/items/{username}/{query_time}/{player_ID}")
-async def get_certain_player_color (username: str, query_time: str, player_ID: str):
+async def get_certain_player_color (username: str, query_time: str, player_ID: int):
 	user_data = collection_color.find_one({"user": username, "update_time": query_time})
 	
-	if player_ID == "all":
-		if user_data:
-			user_json = jsonable_encoder(user_data, custom_encoder={ObjectId: str})
-			return user_json
-		else:
-			return {"message": f"user not found: '{username}'"}
-	elif user_data:
-		player_ID = int(player_ID)
+	if user_data:
 		if player_ID < len(user_data['players']):
 			return {
 				'color_data': user_data['players'][player_ID]
@@ -259,17 +264,6 @@ async def get_music(filename: str, current_user: User = Depends(get_current_acti
 
 	# Return the file as a response
 	return FileResponse(file_location, media_type='audio/mpeg', filename=filename)
-
-#@app.get("/items/{username}/{query_time}")
-#async def get_user_color (username: str, query_time: str):
-#   user_data = collection_color.find_one({"user": username, "update_time": query_time})
-#
-#   if user_data:
-#       user_json = jsonable_encoder(user_data, custom_encoder={ObjectId: str})
-#       return user_json
-#   else:
-#       return {"message": f"user not found: '{username}'"}
-
 
 # # saving light color data
 # @app.post("/items/")   # to be determined
