@@ -25,14 +25,14 @@ int main() {
 	sort (num.begin(), num.end(), [] (vector<int> &a, vector<int> &b) {
 		return a[0] < b[0];
 	});
-	
-	cout << "[\n";
+	cout << "{\n\t\'color_data\':\n";
+	cout << "\t[\n";
 	for (int i = 0; i < 100; i++) {
-		cout << "\t{\"time\": " << num[i][0] << ", \"head\": " << num[i][1] << ", \"chest\": " << num[i][2]
+		cout << "\t\t{\"time\": " << num[i][0] << ", \"head\": " << num[i][1] << ", \"chest\": " << num[i][2]
 			 << ", \"waist\": " << num[i][3] << ", \"arm\": " << num[i][4] << ", \"leg\": " << num[i][5] << "}";
 		
 		if (i != 99) cout << ',';
 		cout << '\n';
 	}
-	cout << "]\n";
+	cout << "\t]\n}";
 }
