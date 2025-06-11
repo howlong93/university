@@ -15,6 +15,7 @@ class Connection {
     int dist_sqr;
     int lnth, bend;
     vector<pair<int, int>> path;
+    int shortest_route_length;
 
     Connection () {
         idx = 0;
@@ -22,6 +23,7 @@ class Connection {
         init_x = init_y = term_x = term_y = 0;
         dist_sqr = 0;
         lnth = bend = 0;
+        shortest_route_length = 0;
     }
 
     Connection (int _idx, int _init_x, int _init_y, int _term_x, int _term_y) {
@@ -33,10 +35,12 @@ class Connection {
         term_y = _term_y;
         dist_sqr = (term_y-init_y)*(term_y-init_y) + (term_x-init_x)*(term_x-init_x);
         lnth = bend = 0;
+        shortest_route_length = 0;
     }
 
     bool operator< (const Connection &a) {
-        return dist_sqr < a.dist_sqr;
+        // return dist_sqr < a.dist_sqr;
+        return shortest_route_length < a.shortest_route_length;
     }
 };
 
@@ -165,6 +169,11 @@ int main() {
         cin >> in[0] >> in[1] >> in[2] >> in[3];
 
         Connection tmp_connect (i+1, in[0], in[1], in[2], in[3]);
+
+        BFS (tmp_connect, grid);
+        tmp_connect.shortest_route_length = tmp_connect.lnth;
+        tmp_connect.lnth = tmp_connect.bend = 0;
+        tmp_connect.path.clear();
 
         connects.push_back(tmp_connect);
     }
