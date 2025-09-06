@@ -199,6 +199,44 @@ void checkRefereeBalance(const vector<int>& refereeCounts) {
     }
 }
 
+// Function to check if every team played exactly once against each other
+void checkAllPairs(const vector<vector<pair<GameWithReferee, GameWithReferee>>>& schedule, int totalTeams) {
+    vector<vector<int>> matchCount(totalTeams + 1, vector<int>(totalTeams + 1, 0));
+
+    // Count matches
+    for (const auto& week : schedule) {
+        for (const auto& slot : week) {
+            int t1 = slot.first.game.team1;
+            int t2 = slot.first.game.team2;
+            int t3 = slot.second.game.team1;
+            int t4 = slot.second.game.team2;
+
+            matchCount[t1][t2]++;
+            matchCount[t2][t1]++;
+            matchCount[t3][t4]++;
+            matchCount[t4][t3]++;
+        }
+    }
+
+    // Verify results
+    bool ok = true;
+    for (int i = 1; i <= totalTeams; i++) {
+        for (int j = i + 1; j <= totalTeams; j++) {
+            if (matchCount[i][j] == 0) {
+                cout << "⚠️ Teams " << i << " and " << j << " never played each other!" << endl;
+                ok = false;
+            } else if (matchCount[i][j] > 1) {
+                cout << "⚠️ Teams " << i << " and " << j << " played " << matchCount[i][j] << " times!" << endl;
+                ok = false;
+            }
+        }
+    }
+
+    if (ok) {
+        cout << "✅ All teams played against each other exactly once." << endl;
+    }
+}
+
 int main() {
 	const int totalTeams = 14; // Adjust for your league
 	const int totalWeeks = 16; // Number of weeks in the season
@@ -223,6 +261,9 @@ int main() {
 
     // Check referee balance
     checkRefereeBalance(refereeCounts);
+
+	// 🔍 Verify that every team played each other once
+	checkAllPairs(schedule, totalTeams);
 
     return 0;
 }
